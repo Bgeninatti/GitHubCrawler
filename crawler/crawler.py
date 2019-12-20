@@ -1,30 +1,10 @@
-import random
+
 import urllib.parse
-import urllib.request
 from lxml import etree
-from collections import defaultdict
 from logger import get_logger
 
 BASE_URL = "https://github.com"
 logger = get_logger(__name__)
-
-
-class HTTPHandler:
-
-    def __init__(self, proxies):
-        self._proxies = proxies
-
-    def get(self, url):
-        proxy = self._get_proxy()
-        request = urllib.request.Request(url)
-        request.set_proxy(proxy, 'http')
-        logger.info("Attempt to do GET request: url=%s, proxy=%s", url, proxy)
-        response = urllib.request.urlopen(request)
-        logger.info("GET request was successful: url=%s, proxy=%s", url, proxy)
-        return response
-
-    def _get_proxy(self):
-        return random.choice(self._proxies)
 
 
 class GitHubSearchCrawler:
