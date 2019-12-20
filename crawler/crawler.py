@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 class GitHubSearchCrawler:
     """
-    Crawl
+    Crawler for GitHub search.
     """
     search_uri = '/search'
     xpaths = {
@@ -19,6 +19,18 @@ class GitHubSearchCrawler:
     }
 
     def __init__(self, query, result_type, http_handler):
+        """
+        Initialize a search with parameters and a handler that will be used
+        to make the request.
+
+              :param query: string of keywords. Each keyword should be separated by a '+' sign.
+                            i.e: For keywords "python" and "html" `query` param will be "python+html"
+              :type query: string
+              :param result_type: One of the three supported result types: `wikis`, `repositories`, `issues`
+              :type result_type: str
+              :param http_handler: An instance of any class with a `get(url)` method that
+                                   gets an url as argument and return a redeable object with HTML content
+        """
         if result_type.lower() not in self.xpaths.keys():
             raise ValueError("Result of type \"{}\" is not supported".format(
                 result_type))
@@ -37,12 +49,20 @@ class GitHubSearchCrawler:
     def run(self):
         """
         Run crawler, download data and parse the result as HTML.
+        If run successfully populates the `self._result_tree` objects.
         """
         response = self._http_handler.get(self._url)
         logger.info("Parsing HTML tree from HTTP response")
         self._result_tree = etree.parse(response, self._htmlparser)
 
     def get_result(self):
+        """
+        This method should be run after the `self.run()` method.
+        Search the links for each search result based on the result_type.
+
+          :return: list of dict like: `{"url": "http://github.com/some_result"}`
+          :rtype: list of dicts
+        """
         logger.info("Searching results in HTML tree: result_type=%s", self.result_type)
         xpath = self.xpaths[self.result_type]
         urls = self._result_tree.xpath(xpath)
