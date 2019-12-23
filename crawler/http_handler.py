@@ -3,6 +3,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 from logger import get_logger
+from threading import Thread
 
 logger = get_logger(__name__)
 
@@ -22,18 +23,18 @@ class UrllibHandler:
           :type query: list of strings
         """
         self._proxies = proxies
+        self.proxy = self._get_proxy()
 
     def get(self, url):
         """
         Get a url and return a redeable object with the raw html retrived
         """
         request = urllib.request.Request(url)
-        proxy = self._get_proxy()
-        if proxy:
-            request.set_proxy(proxy, 'http')
-        logger.info("Attempt to do GET request: url=%s, proxy=%s", url, proxy)
+        if self.proxy:
+            request.set_proxy(self.proxy, 'http')
+        logger.info("Attempt to do GET request: url=%s, proxy=%s", url, self.proxy)
         response = urllib.request.urlopen(request)
-        logger.info("GET request was successful: url=%s, proxy=%s", url, proxy)
+        logger.info("GET request was successful: url=%s, proxy=%s", url, self.proxy)
         return response
 
     def _get_proxy(self):
@@ -44,3 +45,4 @@ class UrllibHandler:
         if not self._proxies:
             return
         return random.choice(self._proxies)
+

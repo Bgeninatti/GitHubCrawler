@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-from crawler.crawler import GitHubSearchCrawler
+from crawler.crawler import GitHubSearchCrawler, GitHubRepoStatsCrawler
 from crawler.http_handler import UrllibHandler
 from pprint import pprint
 
@@ -27,6 +27,14 @@ def main():
     gh_crawler.run()
     output_file = args.get('output_file')
     result = gh_crawler.get_result()
+
+    if gh_crawler.result_type == 'repositories':
+        for repo in result:
+            crawler = GitHubRepoStatsCrawler(repo['url'], http_handler)
+            crawler.run()
+            repo['extra'] = crawler.get_result()
+
+
     if output_file:
         json.dump(result, open(output_file, 'w'))
     else:
