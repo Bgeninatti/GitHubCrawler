@@ -1,9 +1,15 @@
 import argparse
 import json
-import sys
+import random
+import urllib.error
+
 from crawler.crawler import GitHubSearchCrawler, GitHubRepoStatsCrawler
-from crawler.http_handler import UrllibHandler
+from crawler.http_handler import UrllibHandler, get_urls_async
+from crawler.cfg import BASE_URL, SEARCH_URI
 from pprint import pprint
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 parser = argparse.ArgumentParser(
     description="Get results of a search in github for a certain type of result " + \
@@ -15,26 +21,52 @@ parser.add_argument('-o', '--output', dest="output_file",
                          'we print the result in the stdout')
 
 def main():
+    # Parse arguments
     args = vars(parser.parse_args())
     with open(args['input_file'], encoding="utf-8") as jsonfile:
         kwargs = json.loads(jsonfile.read())
-    http_handler = UrllibHandler(kwargs.get('proxies', []))
+
+    result_type = kwargs['type'].lower()
+    keywords = kwargs['keywords']
+    proxies = kwargs.get('proxies', [])
+    proxy = random.choice(proxies) if proxies else None
+
+
+    # Perform search request
+    search_request = UrllibHandler(f"{BASE_URL}{SEARCH_URI}",
+                                   proxy,
+                                   q='+'.join(keywords),
+                                   type=result_type)
+    try:
+        search_response = search_request.get()
+    except (urllib.error.URLError, urllib.error.HTTPError) as ex:
+        logger.error("Unexpected error during search request: url=%s, proxy=%s, " + \
+                     "error=%s", search_request.url, proxy, ex)
+        return
+
+    # Search result in HTML tree
     gh_crawler = GitHubSearchCrawler(
-        '+'.join(kwargs['keywords']),
-        kwargs['type'],
-        http_handler
+        search_request.url,
+        search_response,
+        result_type
     )
-    gh_crawler.run()
-    output_file = args.get('output_file')
     result = gh_crawler.get_result()
 
-    if gh_crawler.result_type == 'repositories':
-        for repo in result:
-            crawler = GitHubRepoStatsCrawler(repo['url'], http_handler)
-            crawler.run()
-            repo['extra'] = crawler.get_result()
+    # If results are repos, make aditional requests and search for language statistics & owner
+    if result_type == 'repositories':
+        responses = get_urls_async([r['url'] for r in result], proxy)
+        new_result = []
+        for url, response in responses.items():
+            if response:
+                crawler = GitHubRepoStatsCrawler(url, response)
+                extra_data = crawler.get_result()
+            else:
+                extra_data = None
+            new_result.append({'url': url, 'extra': extra_data})
+        result = new_result
 
-
+    # If output file was specified save the result in a file, otherwise print stdout
+    output_file = args.get('output_file')
     if output_file:
         json.dump(result, open(output_file, 'w'))
     else:

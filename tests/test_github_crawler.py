@@ -24,18 +24,6 @@ class TestGitHubSearchCrawler:
         with pytest.raises(ValueError):
             GitHubSearchCrawler("python", result_type, http_handler)
 
-
-    @pytest.mark.parametrize("query,encoded_query", [
-        ("#", "%23"),
-        ("¥", "%C2%A5"),
-        ("ê", "%C3%AA"),
-        ("ý", "%C3%BD")
-    ])
-    def test_support_unicode(self, query, encoded_query, http_handler):
-        crawler = GitHubSearchCrawler(query, "issues", http_handler)
-        assert crawler._query_params == encoded_query
-
-
     def test_run_populates_result_tree(self, http_handler):
         crawler = GitHubSearchCrawler("python", "wikis", http_handler)
         crawler.run()
