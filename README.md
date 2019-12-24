@@ -86,6 +86,8 @@ optional arguments:
 Module|Statements|Missing|Excluded|Coverage
 ------|----------|-------|--------|--------
 crawler/\_\_init\_\_.py |	0 |	0 |	0 |	100%
-crawler/crawler.py |	30 |	0 |	0 |	100%
-crawler/http_handler.py |	22 |	2 |	0 |	91%
-|**Total** |	**52** |	**2** |	**0** |	**96%** |
+crawler/cfg.py |	3 |	0 |	0 |	100%
+crawler/crawler.py |	46 |	14 |	0 |	70%
+crawler/http_handler.py |	38 |	1 |	0 |	97%
+crawler/parsers.py |	33 |	0 |	0 |	100%
+|**Total** |	**120** |	**15** |	**0** |	**88%** |
