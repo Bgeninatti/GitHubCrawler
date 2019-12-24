@@ -16,32 +16,26 @@ class GitHubSearchParser:
         'issues': "//div[contains(@class,'issue-list-item')]/div/div[1]/h3/a/@href"
     }
 
-    def __init__(self, url, content, result_type):
+    def __init__(self, content, result_type):
         """
         Initialize a search with parameters and a handler that will be used
         to make the request.
 
-              :param query: string of keywords. Each keyword should be separated by a '+' sign.
-                            i.e: For keywords "python" and "html" `query` param will be "python+html"
-              :type query: string
+              :param content: A redeable object (object that implements a `read()` method) and returns HTML content
+              :type content: file or response
               :param result_type: One of the three supported result types: `wikis`, `repositories`, `issues`
               :type result_type: str
-              :param http_handler: An instance of any class with a `get(url)` method that
-                                   gets an url as argument and return a redeable object with HTML content
         """
-        self.url = url
         self._htmlparser = etree.HTMLParser()
         self._result_tree = etree.parse(content, self._htmlparser)
         if result_type.lower() not in self.xpaths.keys():
             raise ValueError("Result of type \"{}\" is not supported".format(
                 result_type))
         self.result_type = result_type.lower()
-        logger.info("GitHubSearchCrawler initialized: url=%s, result_type=%s",
-                    self.url, self.result_type)
+        logger.info("GitHubSearchCrawler initialized: result_type=%s", self.result_type)
 
     def get_result(self):
         """
-        This method should be run after the `self.run()` method.
         Search the links for each search result based on the result_type.
 
           :return: list of dict like: `{"url": "http://github.com/some_result"}`
@@ -63,23 +57,17 @@ class GitHubRepoStatsParser:
         'languages': "//span[contains(@class, 'language-color')]/@aria-label"
     }
 
-    def __init__(self, url, content):
+    def __init__(self, content):
         """
         Initialize a search with parameters and a handler that will be used
         to make the request.
 
-              :param query: string of keywords. Each keyword should be separated by a '+' sign.
-                            i.e: For keywords "python" and "html" `query` param will be "python+html"
-              :type query: string
-              :param result_type: One of the three supported result types: `wikis`, `repositories`, `issues`
-              :type result_type: str
-              :param http_handler: An instance of any class with a `get(url)` method that
-                                   gets an url as argument and return a redeable object with HTML content
+              :param content: A redeable object (object that implements a `read()` method) and returns HTML content
+              :type content: file or response
         """
-        self.url = url
         self._htmlparser = etree.HTMLParser()
         self._result_tree = etree.parse(content, self._htmlparser)
-        logger.info("GitHubReposStatsCrawler initialized: url=%s", self.url)
+        logger.info("GitHubReposStatsCrawler initialized")
 
     def get_result(self):
         """

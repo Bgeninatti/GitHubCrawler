@@ -12,16 +12,25 @@ logger = get_logger(__name__)
 
 
 def get_repositories_data(urls, proxy):
+    """
+    Get owner and languages statistics from all the repose
+    in `urls`
+    """
     responses = get_urls_async(urls, proxy)
     result = []
     for url, response in responses.items():
-        parser = GitHubRepoStatsParser(url, response)
+        parser = GitHubRepoStatsParser(response)
         extra_data = parser.get_result()
         result.append({'url': url, 'extra': extra_data})
     return result
 
 
 def do_github_search(keywords, result_type, proxy):
+    """
+    Perform a search in GitHub for the given keywords and result type.
+    If proxy is None, no proxy will be used.
+    Returns a list of dicts with urls of results in first page.
+    """
     # Perform search request
     search_request = UrllibHandler(f"{BASE_URL}{SEARCH_URI}",
                                    proxy,
@@ -36,7 +45,6 @@ def do_github_search(keywords, result_type, proxy):
 
     # Search result in HTML tree
     search_parser = GitHubSearchParser(
-        search_request.url,
         search_response,
         result_type
     )
@@ -45,6 +53,10 @@ def do_github_search(keywords, result_type, proxy):
 
 
 def parse_input_file(input_filename):
+    """
+    Read `input_file` as a json and return a list of keywords, result_type
+    and proxies list (or empty list of not present int JSON)
+    """
     with open(input_filename, encoding="utf-8") as jsonfile:
         kwargs = json.loads(jsonfile.read())
 
@@ -55,6 +67,9 @@ def parse_input_file(input_filename):
 
 
 def run_crawler(parser):
+    """
+    Run the GitHub crawler for a given JSON file with input params
+    """
     # Parse arguments
     args = vars(parser.parse_args())
     keywords, result_type, proxies = parse_input_file(args['input_file'])

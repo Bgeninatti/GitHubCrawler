@@ -25,9 +25,8 @@ class TestGitHubSearchParser:
     ])
     def test_usupported_result_types(self, result_type, dummy_html):
         with pytest.raises(ValueError):
-            GitHubSearchParser("http://someurl.com",
-                                dummy_html,
-                                result_type)
+            GitHubSearchParser(dummy_html,
+                               result_type)
 
     @pytest.mark.parametrize("html_file,result_type", [
         ("html_files/result_issues.html", "issues"),
@@ -37,8 +36,7 @@ class TestGitHubSearchParser:
     def test_get_result_return_list_of_objects(self, html_file, result_type):
         path_to_html = os.path.join(BASE_PATH, html_file)
         print(path_to_html)
-        parser = GitHubSearchParser(html_file,
-                                    open(path_to_html),
+        parser = GitHubSearchParser(open(path_to_html),
                                     result_type)
 
         result = parser.get_result()
@@ -54,7 +52,7 @@ class TestGitHubStatsParser:
     ])
     def test_return_extra_data_object(self, html_file):
         path_to_html = os.path.join(BASE_PATH, html_file)
-        parser = GitHubRepoStatsParser(html_file, open(path_to_html, "r"))
+        parser = GitHubRepoStatsParser(open(path_to_html, "r"))
         result = parser.get_result()
         assert "owner" in result.keys()
         assert "language_stats" in result.keys()
