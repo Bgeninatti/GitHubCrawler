@@ -3,6 +3,7 @@ import urllib.request
 import urllib.error
 import concurrent.futures
 from logger import get_logger
+from crawler.cfg import MAX_HTTP_WORKERS
 
 logger = get_logger(__name__)
 
@@ -41,7 +42,7 @@ class UrllibHandler:
         return response
 
 
-def get_urls_async(urls, proxy, max_workers=8):
+def get_urls_async(urls, proxy=None, max_workers=MAX_HTTP_WORKERS):
     result = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {}
